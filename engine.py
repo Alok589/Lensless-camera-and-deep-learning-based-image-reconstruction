@@ -99,6 +99,7 @@ def train(data_loader, model, optimizer, device):
         # in our dataset class
         inputs = data[0]
         targets = data[1]
+        labels = data[2]
         # move inputs/targets to cuda/cpu device
         inputs = inputs.to(device, dtype=torch.float)
         targets = targets.to(device, dtype=torch.float)
@@ -148,6 +149,7 @@ def evaluate(data_loader, model, device):
         for idx, data in enumerate(data_loader, 1):
             inputs = data[0]
             targets = data[1]
+            labels = data[2]
             inputs = inputs.to(device, dtype=torch.float)
             targets = targets.to(device, dtype=torch.float)
             # do the forward step to generate prediction
