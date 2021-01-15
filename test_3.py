@@ -26,22 +26,18 @@ if __name__ == "__main__":
 
     project_path = "/home/thesis_2/"
     data_path = "/home/thesis_2/Emnist_dataset/"
-    
+
     loss_curves = os.path.join(project_path, "loss_curves")
-    models_weights = os.path.join(project_path, "models_weights")
-    optimizer_chp = os.path.join(project_path, "optimizer_chp")
+    # models_weights = os.path.join(project_path, "models_weights")
+    model_opt_chp = os.path.join(project_path, "model_opt_chp")
 
     file_names = ["emnist_imgs.npy", "emnist_measures.npy", "emnist_labels.npy"]
-      
 
-
-    exp = "exp_24_MAE"
+    exp = ""
     device = "cuda:6"
     epochs = 50
     is_model_trained = False
-    ck_pt_path = "/home/thesis_bk/optimizer_chp/exp_20.pt"
-
-
+    ck_pt_path = "/home/thesis_2/model_opt_chp/exp_20.pt"
 
     if is_model_trained:
         checkpoint = torch.load(ck_pt_path)
@@ -50,19 +46,17 @@ if __name__ == "__main__":
     real_images = np.load("/home/thesis_2/Emnist_dataset/emnist_imgs.npy")
     labels = np.load("/home/thesis_2/Emnist_dataset/emnist_labels.npy")
 
-    # num_of_images = len(meas_images)
-    # print("number of images are", str(num_of_images))
-    # 112800
-    # num_of_images = len(real_images)
-    # print("number of images are", str(real_images))  # 112800
-
     img_indices = np.arange(112800)
 
-    train_indices, test_indices , _, _ = train_test_split(img_indices, img_indices, test_size= 0.10)
+    train_indices, test_indices, _, _ = train_test_split(
+        img_indices, img_indices, test_size=0.10
+    )
 
-    train_indices, val_indices, _, _ = train_test_split(train_indices, train_indices, test_size= 0.10)
+    train_indices, val_indices, _, _ = train_test_split(
+        train_indices, train_indices, test_size=0.10
+    )
 
-    # indices are done 
+    # indices are done
     train_X = meas_images[train_indices]
     val_X = meas_images[val_indices]
     test_X = meas_images[test_indices]
@@ -75,19 +69,6 @@ if __name__ == "__main__":
     test_labels = labels[test_indices]
     val_labels = labels[val_indices]
 
-
-
-
-
-
-
-
-    # train_X, test_X, train_Y, test_Y = train_test_split(
-    #     meas_images, real_images, test_size=0.10
-    # )
-
-    # train_X, val_X, train_Y, val_Y = train_test_split(train_X, train_Y, test_size=0.15)
-
     model = Dense_Unet()
 
     if is_model_trained:
@@ -97,18 +78,15 @@ if __name__ == "__main__":
     model.to(device)
 
     train_dataset = dataset.ClassificationDataset(
-        meas_images = train_X, real_images = train_Y, labels=train_labels
-
-
+        meas_images=train_X, real_images=train_Y, labels=train_labels
     )
 
     train_loader = torch.utils.data.DataLoader(
         train_dataset, batch_size=8, shuffle=True, num_workers=2
     )
 
-
     valid_dataset = dataset.ClassificationDataset(
-        meas_images = val_X, real_images = val_Y, labels=val_labels
+        meas_images=val_X, real_images=val_Y, labels=val_labels
     )
 
     valid_loader = torch.utils.data.DataLoader(
@@ -116,21 +94,62 @@ if __name__ == "__main__":
     )
 
     test_dataset = dataset.ClassificationDataset(
-        meas_images = test_X, real_images = test_Y, labels=test_labels
+        meas_images=test_X, real_images=test_Y, labels=test_labels
     )
     test_loader = torch.utils.data.DataLoader(
         test_dataset, batch_size=4, shuffle=False, num_workers=2
     )
 
+    writer = SummaryWriter("tensorboard/" + exp + "/")
 
-    # i = 0 
-    # for meas, real, label in train_loader:
-    #     m = meas 
-    #     r = real
-    #     l = label;
-    #     if i == 1:
-    #         break
-    #     i+=1
+    optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
 
-    print(" ")
-            
+    if is_model_trained:
+        # optimizer = optimizer.load.checkpoint['optimizer']
+        optimizer.load_state_dict(checkpoint["optimizer"])
+
+    if is_model_trained:
+        tart_epoch = checkpoint["epoch"]
+        end_epoch = checkpoint["epoch"] + epochs
+    else:
+        start_epoch = 0
+        end_epoch = epochs
+
+    train_losses = []
+    val_losses = []
+    for epoch in tqdm(range(start_epoch, end_epoch)):
+        print("epoch " + str(epoch))
+        train_loss = engine.train(train_loader, model, optimizer, device=device)
+        val_loss = engine.evaluate(valid_loader, model, device=device)
+        train_losses.append(train_loss)
+        val_losses.append(val_loss)
+
+        writer.add_scalar("train", train_loss, epoch)
+        writer.add_scalar("val", val_loss, epoch)
+        writer.add_scalars(
+            "train and val losses", {"train": train_loss, "val": val_loss}, epoch
+        )
+
+        if epoch % 25 == 0:
+            print(epoch)
+    writer.close()
+
+    # torch.save(model.state_dict(), os.path.join(models_weights, exp + ".pt"))
+
+    checkpoint = {
+        "epoch": epochs,
+        "model": model.state_dict(),
+        "optimizer": optimizer.state_dict(),
+    }
+    # # torch.save(checkpoint, os.path.join(optimizer_chp, exp + ".pt"))
+    torch.save(checkpoint, os.path.join(model_opt_chp, "exp_24_MAE.pt"))
+    # # checkpoint = torch.load('checkpoint.pth')
+
+    plt.figure()
+    plt.plot(list(range(1, epochs + 1)), train_losses, label="train")
+    plt.plot(list(range(1, epochs + 1)), val_losses, label="val")
+    plt.legend()
+
+    plt.savefig(os.path.join(loss_curves, exp + ".png"))
+
+    print("")
