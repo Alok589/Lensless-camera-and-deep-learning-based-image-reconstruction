@@ -17,9 +17,13 @@ from torch.utils.tensorboard import SummaryWriter
 import torchvision
 from torch.hub import tqdm
 
-# from torch.nn.parallel import DistributedDataParallel as DDP
+# import pandas as pd
+
 from skimage.filters import rank
 import scipy.io as sio
+import skimage.transform as skt
+from PIL import Image
+from PIL import ImageFile
 
 
 if __name__ == "__main__":
@@ -33,7 +37,7 @@ if __name__ == "__main__":
 
     file_names = ["emnist_imgs.npy", "emnist_measures.npy", "emnist_labels.npy"]
 
-    exp = ""
+    exp = "exp_43"
     device = "cuda:6"
     epochs = 50
     is_model_trained = False
@@ -69,7 +73,7 @@ if __name__ == "__main__":
     test_labels = labels[test_indices]
     val_labels = labels[val_indices]
 
-    model = Dense_Unet()
+    model = Dense_Unet(1, 1)
 
     if is_model_trained:
         model.load_state_dict(checkpoint["model"])
@@ -99,6 +103,8 @@ if __name__ == "__main__":
     test_loader = torch.utils.data.DataLoader(
         test_dataset, batch_size=4, shuffle=False, num_workers=2
     )
+
+
 
     writer = SummaryWriter("tensorboard/" + exp + "/")
 
