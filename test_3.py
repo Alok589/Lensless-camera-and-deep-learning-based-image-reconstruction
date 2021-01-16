@@ -16,14 +16,12 @@ from torch import nn
 from torch.utils.tensorboard import SummaryWriter
 import torchvision
 from torch.hub import tqdm
-
-# import pandas as pd
-
 from skimage.filters import rank
 import scipy.io as sio
 import skimage.transform as skt
 from PIL import Image
 from PIL import ImageFile
+from Deep_Res_Unet import Deep_Res_Unet
 
 
 if __name__ == "__main__":
@@ -37,9 +35,10 @@ if __name__ == "__main__":
 
     file_names = ["emnist_imgs.npy", "emnist_measures.npy", "emnist_labels.npy"]
 
-    exp = "exp_43"
-    device = "cuda:6"
-    epochs = 50
+    exp = "exp_01"
+    device = "cuda:5"
+    # device = torch.device("cuda:0")
+    epochs = 1
     is_model_trained = False
     ck_pt_path = "/home/thesis_2/model_opt_chp/exp_20.pt"
 
@@ -73,7 +72,7 @@ if __name__ == "__main__":
     test_labels = labels[test_indices]
     val_labels = labels[val_indices]
 
-    model = Dense_Unet(1, 1)
+    model = Deep_Res_Unet()
 
     if is_model_trained:
         model.load_state_dict(checkpoint["model"])
@@ -103,8 +102,6 @@ if __name__ == "__main__":
     test_loader = torch.utils.data.DataLoader(
         test_dataset, batch_size=4, shuffle=False, num_workers=2
     )
-
-
 
     writer = SummaryWriter("tensorboard/" + exp + "/")
 
@@ -136,8 +133,8 @@ if __name__ == "__main__":
             "train and val losses", {"train": train_loss, "val": val_loss}, epoch
         )
 
-        if epoch % 25 == 0:
-            print(epoch)
+        # if epoch % 25 == 0:
+        #     print(epoch)
     writer.close()
 
     # torch.save(model.state_dict(), os.path.join(models_weights, exp + ".pt"))
@@ -148,7 +145,7 @@ if __name__ == "__main__":
         "optimizer": optimizer.state_dict(),
     }
     # # torch.save(checkpoint, os.path.join(optimizer_chp, exp + ".pt"))
-    torch.save(checkpoint, os.path.join(model_opt_chp, "exp_24_MAE.pt"))
+    torch.save(checkpoint, os.path.join(model_opt_chp, "exp_01.pt"))
     # # checkpoint = torch.load('checkpoint.pth')
 
     plt.figure()
