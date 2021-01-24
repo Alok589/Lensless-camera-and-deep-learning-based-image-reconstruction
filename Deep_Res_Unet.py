@@ -8,6 +8,7 @@ import scipy.io as sio
 import torch
 from torch.optim import optimizer
 from torch.nn.modules import BatchNorm2d
+from torchsummary import summary
 
 
 class residual_block(nn.Module):
@@ -109,11 +110,12 @@ class out_img2(nn.Module):
     def __init__(self, in_ch, out_ch):
         super(out_img2, self).__init__()
         self.conv1 = nn.Conv2d(in_ch, out_ch, kernel_size=1)
+        self.sigmoid = nn.Sigmoid()
         # self.conv2 = nn.conv2d(out_ch, out_ch, kernel_size = 1, padding = 1)
 
     def forward(self, x):
         x = self.conv1(x)
-        # x = self.conv2(x)
+        x = self.sigmoid(x)
 
         return x
 
@@ -219,7 +221,7 @@ if __name__ == "__main__":
     input_image = torch.rand(size=(1, 1, 128, 128))
     input_image = input_image.to(device)
     out = model(input_image)
-    print(out.shape)
+    # print(out.shape)
 
 
 #     source = torch.rand((2, 2))

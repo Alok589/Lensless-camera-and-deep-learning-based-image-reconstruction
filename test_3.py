@@ -35,10 +35,10 @@ if __name__ == "__main__":
 
     file_names = ["emnist_imgs.npy", "emnist_measures.npy", "emnist_labels.npy"]
 
-    exp = "exp_01"
+    exp = "exp_05"
     device = "cuda:5"
     # device = torch.device("cuda:0")
-    epochs = 1
+    epochs = 50
     is_model_trained = False
     ck_pt_path = "/home/thesis_2/model_opt_chp/exp_20.pt"
 
@@ -52,21 +52,21 @@ if __name__ == "__main__":
     img_indices = np.arange(112800)
 
     train_indices, test_indices, _, _ = train_test_split(
-        img_indices, img_indices, test_size=0.10
+        img_indices, img_indices, test_size=0.20
     )
 
     train_indices, val_indices, _, _ = train_test_split(
-        train_indices, train_indices, test_size=0.10
+        train_indices, train_indices, test_size=0.20
     )
 
     # indices are done
-    train_X = meas_images[train_indices]
-    val_X = meas_images[val_indices]
-    test_X = meas_images[test_indices]
+    train_X = meas_images[train_indices][:70000]
+    val_X = meas_images[val_indices][:70000]
+    test_X = meas_images[test_indices][:70000]
 
-    train_Y = real_images[train_indices]
-    val_Y = real_images[val_indices]
-    test_Y = real_images[test_indices]
+    train_Y = real_images[train_indices][:70000]
+    val_Y = real_images[val_indices][:70000]
+    test_Y = real_images[test_indices][:70000]
 
     train_labels = labels[train_indices]
     test_labels = labels[test_indices]
@@ -105,7 +105,7 @@ if __name__ == "__main__":
 
     writer = SummaryWriter("tensorboard/" + exp + "/")
 
-    optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
+    optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
 
     if is_model_trained:
         # optimizer = optimizer.load.checkpoint['optimizer']
@@ -145,7 +145,7 @@ if __name__ == "__main__":
         "optimizer": optimizer.state_dict(),
     }
     # # torch.save(checkpoint, os.path.join(optimizer_chp, exp + ".pt"))
-    torch.save(checkpoint, os.path.join(model_opt_chp, "exp_01.pt"))
+    torch.save(checkpoint, os.path.join(model_opt_chp, "exp_05.pt"))
     # # checkpoint = torch.load('checkpoint.pth')
 
     plt.figure()

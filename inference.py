@@ -12,8 +12,6 @@ from cv2 import exp, transform
 from numpy.lib.npyio import save
 import dataset
 import matplotlib.pyplot as plt
-
-
 import torch
 import scipy.io as sio
 import numpy as np
@@ -25,6 +23,9 @@ import torch.nn.functional as F
 from skimage import io
 from torch.utils.tensorboard import SummaryWriter
 from torch.optim import optimizer
+from Deep_Res_Unet import Deep_Res_Unet
+from engine import evaluate
+import cv2
 
 # writer = SummaryWriter("runs/thesis")
 
@@ -32,61 +33,71 @@ from torch.optim import optimizer
 tform = tf.SimilarityTransform(rotation=0.00174)
 
 
-def evaluate(X):
-    X = X / 65535.0
-    X_train = np.zeros((1, 4, 500, 620))
-    im1 = np.zeros((512, 640, 4))
-    im1[:, :, 0] = X[0::2, 0::2]  # b
-    im1[:, :, 1] = X[0::2, 1::2]  # gb
-    im1[:, :, 2] = X[1::2, 0::2]  # gr
-    im1[:, :, 3] = X[1::2, 1::2]  # r
-    im1 = tf.warp(im1, tform)
-    im = im1[6:506, 10:630, :]
-    rowMeans = im.mean(axis=1, keepdims=True)
-    colMeans = im.mean(axis=0, keepdims=True)
-    allMean = rowMeans.mean()
-    im = im - rowMeans - colMeans + allMean
-
-    X_train[0, :, :, :] = np.swapaxes(np.swapaxes(im, 0, 2), 1, 2)
-    X_train = X_train.astype("float32")
-    X_val = torch.from_numpy(X_train)
-    Xvalout = model(X_val)
-    ims = Xvalout.detach().numpy()
-    ims = np.swapaxes(np.swapaxes(ims[0, :, :, :], 0, 2), 0, 1)
-    ims = (ims - np.min(ims)) / (np.max(ims) - np.min(ims))
-    return ims
-
-    # Specify the path to the measurement
+# Specify the path to the measurement
 
 
 # plot_name = "exp_15_epoc_80_" + str(1) + ".png"
-plot_name = "check_5" + ".png"
-model = Dense_Unet()
-model.load_state_dict(
-    torch.load("/home/thesis_bk/optimizer_chp/exp_24_MAE.pt")["model"]
-)
+# plot_name = "check_1" + ".png"
+model = Deep_Res_Unet()
+model.load_state_dict(torch.load("/home/thesis_2/model_opt_chp/exp_04.pt")["model"])
 model.eval()
+device = "cuda:5"
 
-# directory = "optimizer_chp"
-# parent_dir = "/thesis/"
-# path = os.path.join(parent_dir, directory)
-# os.mkdir(path)
+# X = skimage.io.imread(
+#     "/home/thesis_bk/dataset/measurements/n01440764/n01440764_457..png"
+# )
 
-# optim.load_state_dict(torch.load("/thesis/optimizer_chp/opt_1.pt"))
+image_idx = 1000
+x = np.load("/home/thesis_2/Emnist_dataset/emnist_measures.npy")[image_idx]
+y = np.load("/home/thesis_2/Emnist_dataset/emnist_imgs.npy")[image_idx]
+y = cv2.resize(y, dsize=(128, 128), interpolation=cv2.INTER_CUBIC)
+z = np.load("/home/thesis_2/Emnist_dataset/emnist_measures.npy")[image_idx]
 
 
-X = skimage.io.imread(
-    "/home/thesis_bk/dataset/measurements/n01440764/n01440764_457..png"
-)
-recn = evaluate(X)
+x = np.expand_dims(x, 0)
+x = np.expand_dims(x, 0)
+data = torch.tensor(x)
+op = model(data)
+
+pred = op[0].detach().numpy()[0]
+
 # print("recon", recn)
 # print(recn.shape)
-recn = np.swapaxes(recn, 0, 1)
+# recn = np.swapaxes(recn, 0, 1)
 
-plt.figure()
-skimage.io.imshow(recn)
-io.show()
-plt.savefig(os.path.join("/home/thesis_bk/inference_plots", plot_name))
+# plt.figure()
+# skimage.io.imshow(op)
+# io.show()
+# plt.savefig(os.path.join("/home/thesis_2/inference_plots", plot_name))
+
+
+fig = plt.figure()
+
+plt.subplot(1, 4, 1)
+plt.imshow(z)
+plt.title("measurements")
+
+
+plt.subplot(1, 4, 2)
+plt.imshow(pred)
+plt.title("prediction")
+
+plt.subplot(1, 4, 3)
+plt.imshow(y)
+plt.title("Real_image")
+
+plt.subplot(1, 4, 4)
+plt.imshow(np.abs(pred - y))
+plt.title("|pred - Real_image|")
+plot_name = "inf_04" + ".png"
+# plt.savefig("infe_3.png")
+plt.savefig(os.path.join("/home/thesis_2/inference_plots", plot_name))
+
+
+##############
+# plt.figure()
+# plt.imshow(pred)
+# plt.savefig("inference_1.png")
 
 
 # directory = "models_weights"
