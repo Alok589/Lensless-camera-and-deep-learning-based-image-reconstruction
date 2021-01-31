@@ -107,16 +107,16 @@ def evaluate(data_loader, model, device):
             # loss = ssim
 
             "MSE_LOSS"
-            # batch_mse = ((outputs - targets) ** 2).mean().item()
+            # batch_mse = ((outputs - targets) ** 2).mean()
             #         #print("batch"+str(idx) + " loss:" ,batch_mse)
 
             "MAE_loss"
-            # batch_mse = torch.abs(output - targets).mean().item()
+            # batch_mse = torch.abs(output - targets).mean()
 
             "BCE_LOSS"
-            batch_mse = torch.nn.BCELoss()(outputs, targets).item()
+            loss = torch.nn.BCELoss()(outputs, targets)
             # batch_mse = 1 - pytorch_ssim.ssim(img1, img2, windoe_size=11).item()
-            batch_MSEs.append(batch_mse)
+            batch_MSEs.append(loss.item())
         #         # return final output and final targets
         batch_MSEs = np.array(batch_MSEs)
         epoch_loss = np.mean(batch_MSEs)

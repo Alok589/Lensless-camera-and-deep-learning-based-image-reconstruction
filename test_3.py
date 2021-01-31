@@ -35,10 +35,10 @@ if __name__ == "__main__":
 
     file_names = ["emnist_imgs.npy", "emnist_measures.npy", "emnist_labels.npy"]
 
-    exp = "exp_05"
+    exp = "exp_08"
     device = "cuda:5"
     # device = torch.device("cuda:0")
-    epochs = 50
+    epochs = 30
     is_model_trained = False
     ck_pt_path = "/home/thesis_2/model_opt_chp/exp_20.pt"
 
@@ -145,7 +145,7 @@ if __name__ == "__main__":
         "optimizer": optimizer.state_dict(),
     }
     # # torch.save(checkpoint, os.path.join(optimizer_chp, exp + ".pt"))
-    torch.save(checkpoint, os.path.join(model_opt_chp, "exp_05.pt"))
+    torch.save(checkpoint, os.path.join(model_opt_chp, "exp_08.pt"))
     # # checkpoint = torch.load('checkpoint.pth')
 
     plt.figure()

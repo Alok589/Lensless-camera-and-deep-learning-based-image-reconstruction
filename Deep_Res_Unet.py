@@ -20,7 +20,7 @@ class residual_block(nn.Module):
         self.relu1 = nn.ReLU(inplace=True)
         self.conv2 = nn.Conv2d(out_ch, out_ch, 3, padding=1)
         self.relu2 = nn.ReLU(inplace=True)
-        self.bn = nn.BatchNorm2d(out_ch)
+        self.bn = nn.BatchNorm2d(out_ch, momentum=0.75)
 
     def forward(self, x):
         x = self.conv1(x)

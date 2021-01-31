@@ -39,7 +39,7 @@ tform = tf.SimilarityTransform(rotation=0.00174)
 # plot_name = "exp_15_epoc_80_" + str(1) + ".png"
 # plot_name = "check_1" + ".png"
 model = Deep_Res_Unet()
-model.load_state_dict(torch.load("/home/thesis_2/model_opt_chp/exp_04.pt")["model"])
+model.load_state_dict(torch.load("/home/thesis_2/model_opt_chp/exp_08.pt")["model"])
 model.eval()
 device = "cuda:5"
 
@@ -47,7 +47,7 @@ device = "cuda:5"
 #     "/home/thesis_bk/dataset/measurements/n01440764/n01440764_457..png"
 # )
 
-image_idx = 1000
+image_idx = 25
 x = np.load("/home/thesis_2/Emnist_dataset/emnist_measures.npy")[image_idx]
 y = np.load("/home/thesis_2/Emnist_dataset/emnist_imgs.npy")[image_idx]
 y = cv2.resize(y, dsize=(128, 128), interpolation=cv2.INTER_CUBIC)
@@ -73,23 +73,23 @@ pred = op[0].detach().numpy()[0]
 
 fig = plt.figure()
 
-plt.subplot(1, 4, 1)
+plt.subplot(1, 3, 1)
 plt.imshow(z)
 plt.title("measurements")
 
 
-plt.subplot(1, 4, 2)
+plt.subplot(1, 3, 2)
 plt.imshow(pred)
-plt.title("prediction")
+plt.title("pred")
 
-plt.subplot(1, 4, 3)
+plt.subplot(1, 3, 3)
 plt.imshow(y)
-plt.title("Real_image")
+plt.title("Real_img")
 
-plt.subplot(1, 4, 4)
-plt.imshow(np.abs(pred - y))
-plt.title("|pred - Real_image|")
-plot_name = "inf_04" + ".png"
+# plt.subplot(1, 4, 4)
+# plt.imshow(np.abs(pred - y))
+# plt.title("|pred - Real_img|")
+plot_name = "inf_08" + ".png"
 # plt.savefig("infe_3.png")
 plt.savefig(os.path.join("/home/thesis_2/inference_plots", plot_name))
 
