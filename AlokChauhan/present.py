@@ -6,11 +6,7 @@ import codecs
 
 class Present:
     def __init__(self, key, rounds=32):
-        """Create a PRESENT cipher object
 
-        key:    the key as a 128-bit or 80-bit rawstring
-        rounds: the number of rounds as an integer, 32 by default
-        """
         self.rounds = rounds
         if len(key) * 8 == 80:
             self.roundkeys = generateRoundkeys80(string2number(key), self.rounds)
@@ -18,11 +14,7 @@ class Present:
             self.roundkeys = generateRoundkeys128(string2number(key), self.rounds)
 
     def encrypt(self, block):
-        """Encrypt 1 block (8 bytes)
 
-        Input:  plaintext block as raw string
-        Output: ciphertext block as raw string
-        """
         state = string2number(block)
         for i in xrange(self.rounds - 1):
             state = addRoundKey(state, self.roundkeys[i])
@@ -32,11 +24,7 @@ class Present:
         return number2string_N(cipher, 8)
 
     def decrypt(self, block):
-        """Decrypt 1 block (8 bytes)
 
-        Input:  ciphertext block as raw string
-        Output: plaintext block as raw string
-        """
         state = string2number(block)
         for i in xrange(self.rounds - 1):
             state = addRoundKey(state, self.roundkeys[-i - 1])
@@ -122,12 +110,7 @@ PBox_inv = [PBox.index(x) for x in xrange(64)]
 
 
 def generateRoundkeys80(key, rounds):
-    """Generate the roundkeys for a 80-bit key
 
-    Input:
-            key:    the key as a 80-bit integer
-            rounds: the number of rounds as an integer
-    Output: list of 64-bit roundkeys as integers"""
     roundkeys = []
     for i in xrange(1, rounds + 1):  # (K1 ... K32)
         # rawkey: used in comments to show what happens at bitlevel
@@ -146,12 +129,7 @@ def generateRoundkeys80(key, rounds):
 
 
 def generateRoundkeys128(key, rounds):
-    """Generate the roundkeys for a 128-bit key
 
-    Input:
-            key:    the key as a 128-bit integer
-            rounds: the number of rounds as an integer
-    Output: list of 64-bit roundkeys as integers"""
     roundkeys = []
     for i in xrange(1, rounds + 1):  # (K1 ... K32)
         # rawkey: used in comments to show what happens at bitlevel
@@ -175,10 +153,6 @@ def addRoundKey(state, roundkey):
 
 
 def sBoxLayer(state):
-    """SBox function for encryption
-
-    Input:  64-bit integer
-    Output: 64-bit integer"""
 
     output = 0
     for i in xrange(16):
@@ -187,10 +161,7 @@ def sBoxLayer(state):
 
 
 def sBoxLayer_dec(state):
-    """Inverse SBox function for decryption
 
-    Input:  64-bit integer
-    Output: 64-bit integer"""
     output = 0
     for i in xrange(16):
         output += Sbox_inv[(state >> (i * 4)) & 0xF] << (i * 4)
@@ -198,10 +169,7 @@ def sBoxLayer_dec(state):
 
 
 def pLayer(state):
-    """Permutation layer for encryption
 
-    Input:  64-bit integer
-    Output: 64-bit integer"""
     output = 0
     for i in xrange(64):
         output += ((state >> i) & 0x01) << PBox[i]
@@ -209,10 +177,7 @@ def pLayer(state):
 
 
 def pLayer_dec(state):
-    """Permutation layer for decryption
 
-    Input:  64-bit integer
-    Output: 64-bit integer"""
     output = 0
     for i in xrange(64):
         output += ((state >> i) & 0x01) << PBox_inv[i]
@@ -220,11 +185,7 @@ def pLayer_dec(state):
 
 
 def string2number(i):
-    """Convert a string to a number
 
-    Input: string (big-endian)
-    Output: long or integer
-    """
     # return int(i.codecs.decode(16, 'hex'))
     #       key = codecs.decode("00000000000000000000", "hex")
     # return int(i.encode("hex"), base=16)
@@ -232,12 +193,7 @@ def string2number(i):
 
 
 def number2string_N(i, N):
-    """Convert a number to a string of fixed size
 
-    i: long or integer
-    N: length of string
-    Output: string (big-endian)
-    """
     s = "%0*x" % (N * 2, i)
     #     return s.decode("hex")
 
@@ -270,36 +226,3 @@ if __name__ == "__main__":
     print("decrypted_plaintext____", decrypted)
     print("decrypted_plaintext_len_is____", len(decrypted))
     print("decrypted_text_is____", dec_1)
-
-    #     s = str(codecs.decode("16ff00", "hex"))
-    # key = codecs.decode("00000000000000000000", "hex")
-    # plain = codecs.decode("d9313225f88406e5a55909c5aff5269a86a7a9531534f7da2e4c303d8a318a72", "hex")
-    # auth_data = codecs.decode("D609B1F056637A0D46DF998D88E52E00B2C2846512153524C0895E81108000F1", "hex")
-    # iv = codecs.decode("9313225df88406e555909c5aff5269aa6a7a9538534f7da1e4c303d2a318a728", "hex")
-    # cipher= Present(key)
-    # encrypted = cipher.encrypt(plain)
-    # enc_1 = codecs.encode(encrypted, "hex")
-    # print(enc_1)
-    # "decryption"
-    # decrypted = cipher.decrypt(encrypted)
-    # dec_1 = codecs.encode(decrypted, "hex")
-    # print(dec_1)
-
-    # key = codecs.decode("00000000000000000000000000000000", "hex")
-    # plain = codecs.decode(
-    #     "d9313225f88406e5a55909c5aff5269a86a7a9531534f7da2e4c303d8a318a72", "hex"
-    # )
-    # auth_data = codecs.decode(
-    #     "D609B1F056637A0D46DF998D88E52E00B2C2846512153524C0895E81108000F1", "hex"
-    # )
-    # iv = codecs.decode(
-    #     "9313225df88406e555909c5aff5269aa6a7a9538534f7da1e4c303d2a318a728", "hex"
-    # )
-    # cipher, tag = gcm_encrypt(Present(key, iv, plain, auth_data))
-    # encrypted = cipher.encrypt(plain)
-    # enc_1 = codecs.encode(encrypted, "hex")
-    # print(enc_1)
-    # "decryption"
-    # decrypted = cipher.decrypt(encrypted)
-    # dec_1 = codecs.encode(decrypted, "hex")
-    # print(dec_1)
